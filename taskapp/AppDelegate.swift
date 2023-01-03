@@ -7,14 +7,28 @@
 
 import UIKit
 import UserNotifications
+import RealmSwift
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
-
-
+    // Realmのマイグレーション処理
+    func migration(){
+        let nextSchemaVersion: UInt64 = 1
+        
+        let config = Realm.Configuration (schemaVersion: nextSchemaVersion, migrationBlock: {migration, oldSchemaVerion in
+            if (oldSchemaVerion < nextSchemaVersion) {
+            }
+        })
+        Realm.Configuration.defaultConfiguration = config
+    }
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        // マイグレーション処理
+        migration()
+        let realm = try! Realm()
+
         // ユーザーに通知の許可を求める
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound] ) {(granted, error) in

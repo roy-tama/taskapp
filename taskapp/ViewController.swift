@@ -15,7 +15,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     // DB内のタスクが格納されるリスト
     // 日付の近い順でソート
-    // 以降、内容をアップデートするとリスト内は自動で更新される
+    // 以降、内容をアップデートするとリスト内は自動で更新される　＜昇順でソート＞
     var taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
     
     @IBOutlet weak var tableView: UITableView!
@@ -51,7 +51,7 @@ print("セルの内容を返す")
         
         let dateString: String = formatter.string(from: task.date)
         cell.detailTextLabel?.text = dateString
-
+        
         return cell
     }
     // 各セルを選択した時に実行されるメソッド

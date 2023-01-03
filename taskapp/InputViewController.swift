@@ -13,6 +13,7 @@ class InputViewController: UIViewController {
     @IBOutlet weak var titleTextField: UITextField!
     @IBOutlet weak var contentsTextView: UITextView!
     @IBOutlet weak var dataPicker: UIDatePicker!
+    @IBOutlet weak var categoryTextField: UITextField!
     var task: Task!
     let realm = try! Realm()
     
@@ -28,6 +29,7 @@ class InputViewController: UIViewController {
         titleTextField.text = task.title
         contentsTextView.text = task.contents
         dataPicker.date = task.date
+        categoryTextField.text = task.category
         
     }
     
@@ -41,6 +43,7 @@ class InputViewController: UIViewController {
             self.task.contents = self.contentsTextView.text
             self.task.date = self.dataPicker.date
             self.realm.add(self.task, update: .modified)
+            self.task.category = self.categoryTextField.text!    // カテゴリ追加
         }
         setNotification(task: task)
         super.viewWillDisappear(animated)
@@ -51,6 +54,8 @@ class InputViewController: UIViewController {
         // タイトルと内容を設定（中身がない場合、メッセージ無しで音だけの通知になるので「（XXなし）」を表示する）
         if task.title == "" {
             content.title = "タイトルなし"
+        } else if task.category == "" {
+            content.title = "タイトルあり、カテゴリなし"
         } else {
             content.title = task.title
         }
