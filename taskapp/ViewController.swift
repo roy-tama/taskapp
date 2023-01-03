@@ -31,11 +31,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     // セルの数を返すメソッド
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // Realmデータファイルパスの出力
+//        print(Realm.Configuration.defaultConfiguration.fileURL)
+        // realmで取得したレコード数を返却
+print("セルの数を返す")
         return taskArray.count
     }
     
     // 各セルの内容を返すメソッド
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+print("セルの内容を返す")
         // 再利用可能なセルを取得
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         let task = taskArray[indexPath.row]
@@ -51,16 +56,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     // 各セルを選択した時に実行されるメソッド
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+print("セルを選択した時")
         // segueのIdentifierを指定して遷移させる
         performSegue(withIdentifier: "cellSegue", sender: nil)
     }
     // セルが削除可能であることを伝えるメソッド
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+print("セルが削除可能であることを伝える")
         return.delete
     }
     // Deleteボタンが押された時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        
+print("Delete押された時")
         if editingStyle == .delete {
             // 削除するタスクを取得する
             let task = self.taskArray[indexPath.row]
