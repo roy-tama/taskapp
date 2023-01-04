@@ -17,8 +17,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     // 日付の近い順でソート
     // 以降、内容をアップデートするとリスト内は自動で更新される　＜昇順でソート＞
     var taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
-    
+
+    // 課題対応：カテゴリを固定値でセレクト
+//    var taskArray = try! Realm().objects(Task.self).filter("category == '1'").sorted(byKeyPath: "date", ascending: true)
+
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchTextField: UITextField!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -27,8 +32,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.fillerRowHeight = UITableView.automaticDimension
         tableView.delegate = self
         tableView.dataSource = self
+
     }
-    
+
+    // カテゴリ検索用のテキストフィールドでリターンキー押下時に動作するメソッド
+    @IBAction func searchCategory(_ sender: Any) {
+        if searchTextField.text != "" {
+            let predicate = NSPredicate(format: "category==%@", searchTextField.text!)
+            taskArray = try! Realm().objects(Task.self).filter(predicate).sorted(byKeyPath: "date", ascending: true)
+        } else {
+            taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
+        }
+        tableView.reloadData()
+    }
     // セルの数を返すメソッド
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // Realmデータファイルパスの出力

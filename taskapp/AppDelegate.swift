@@ -27,7 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
         // マイグレーション処理
         migration()
-        let realm = try! Realm()
+//        let realm = try! Realm()
 
         // ユーザーに通知の許可を求める
         let center = UNUserNotificationCenter.current()
