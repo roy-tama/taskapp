@@ -8,7 +8,7 @@
 import UIKit
 import RealmSwift
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource {
     
     // Realmインスタンスの取得
     let realm = try!Realm()
@@ -18,11 +18,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     // 以降、内容をアップデートするとリスト内は自動で更新される　＜昇順でソート＞
     var taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
 
-    // 課題対応：カテゴリを固定値でセレクト
-//    var taskArray = try! Realm().objects(Task.self).filter("category == '1'").sorted(byKeyPath: "date", ascending: true)
+    var categoryList: [String] = []
+    var pickerView: UIPickerView = UIPickerView()
 
     @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var searchTextField: UITextField!
+    @IBOutlet weak var searchTxtField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,30 +33,86 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.delegate = self
         tableView.dataSource = self
 
+        // カテゴリリスト作成
+        createCategoryList()
+        // プロトコルの設定
+        pickerView.delegate = self
+        pickerView.dataSource = self
+
+        let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 35))
+        let doneItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(ViewController.done))
+        let cancelItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(ViewController.cancel))
+                toolbar.setItems([cancelItem, doneItem], animated: true)
+        self.searchTxtField.inputView = pickerView
+        self.searchTxtField.inputAccessoryView = toolbar
+        
+    }
+    @objc func cancel() {
+        self.searchTxtField.text = ""
+        self.searchTxtField.endEditing(true)
     }
 
-    // カテゴリ検索用のテキストフィールドでリターンキー押下時に動作するメソッド
-    @IBAction func searchCategory(_ sender: Any) {
-        if searchTextField.text != "" {
-            let predicate = NSPredicate(format: "category==%@", searchTextField.text!)
+    @objc func done() {
+        self.searchTxtField.endEditing(true)
+    }
+    
+    // カテゴリリストの作成を行う
+    func createCategoryList() {
+        var i: Int = 0
+        categoryList.append("")
+        i += 1
+        for param in taskArray {
+            categoryList.append(param.category)
+            print(String(categoryList.count) + ":" + categoryList[i])
+            i += 1
+        }
+    }
+
+    // -----------------------------------------
+    // UIPickerViewDataSource
+    // -----------------------------------------
+
+    // ピッカービューに表示する列を返却
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    // アイテムの表示個数を返す
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return categoryList.count
+    }
+
+    // -----------------------------------------
+    // UIPickerViewDelegate
+    // -----------------------------------------
+    // 表示する文字列を返す
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        return categoryList[row]
+    }
+    
+    // 選択時の処理
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        if categoryList[row] != "" {
+            let predicate = NSPredicate(format: "category==%@", categoryList[row])
             taskArray = try! Realm().objects(Task.self).filter(predicate).sorted(byKeyPath: "date", ascending: true)
         } else {
             taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
         }
         tableView.reloadData()
     }
+
+    // -----------------------------------------
+    // UITableViewDataSource
+    // -----------------------------------------
     // セルの数を返すメソッド
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // Realmデータファイルパスの出力
 //        print(Realm.Configuration.defaultConfiguration.fileURL)
         // realmで取得したレコード数を返却
-print("セルの数を返す")
         return taskArray.count
     }
     
     // 各セルの内容を返すメソッド
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-print("セルの内容を返す")
         // 再利用可能なセルを取得
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         let task = taskArray[indexPath.row]
@@ -70,20 +126,9 @@ print("セルの内容を返す")
         
         return cell
     }
-    // 各セルを選択した時に実行されるメソッド
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-print("セルを選択した時")
-        // segueのIdentifierを指定して遷移させる
-        performSegue(withIdentifier: "cellSegue", sender: nil)
-    }
-    // セルが削除可能であることを伝えるメソッド
-    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
-print("セルが削除可能であることを伝える")
-        return.delete
-    }
     // Deleteボタンが押された時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-print("Delete押された時")
+
         if editingStyle == .delete {
             // 削除するタスクを取得する
             let task = self.taskArray[indexPath.row]
@@ -107,6 +152,19 @@ print("Delete押された時")
                 }
             }
         }
+    }
+
+    // -----------------------------------------
+    // UITableViewDelegate
+    // -----------------------------------------
+    // 各セルを選択した時に実行されるメソッド
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // segueのIdentifierを指定して遷移させる
+        performSegue(withIdentifier: "cellSegue", sender: nil)
+    }
+    // セルが削除可能であることを伝えるメソッド
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        return.delete
     }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let inputViewController = segue.destination as! InputViewController
