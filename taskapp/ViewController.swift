@@ -60,7 +60,7 @@ print("セルの内容を返す")
         // 再利用可能なセルを取得
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         let task = taskArray[indexPath.row]
-        cell.textLabel?.text = task.title
+        cell.textLabel?.text = task.title + " / Category: " + task.category
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
