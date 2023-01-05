@@ -17,7 +17,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     // 日付の近い順でソート
     // 以降、内容をアップデートするとリスト内は自動で更新される　＜昇順でソート＞
     var taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
-
+    
     var categoryList: [String] = []
     var pickerView: UIPickerView = UIPickerView()
 
@@ -33,8 +33,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.delegate = self
         tableView.dataSource = self
 
-        // カテゴリリスト作成
-        createCategoryList()
         // プロトコルの設定
         pickerView.delegate = self
         pickerView.dataSource = self
@@ -42,7 +40,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 35))
         let doneItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(ViewController.done))
         let cancelItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(ViewController.cancel))
-                toolbar.setItems([cancelItem, doneItem], animated: true)
+        toolbar.setItems([cancelItem, doneItem], animated: true)
         self.searchTxtField.inputView = pickerView
         self.searchTxtField.inputAccessoryView = toolbar
         
@@ -54,17 +52,23 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @objc func done() {
         self.searchTxtField.endEditing(true)
+        self.searchTxtField.text = "\(categoryList[pickerView.selectedRow(inComponent: 0)])"
     }
     
     // カテゴリリストの作成を行う
     func createCategoryList() {
-        var i: Int = 0
-        categoryList.append("")
-        i += 1
+        var i: Int = 1
+        if !categoryList.contains("") {
+            categoryList.append("")
+        }
+
         for param in taskArray {
-            categoryList.append(param.category)
-            print(String(categoryList.count) + ":" + categoryList[i])
-            i += 1
+            // 重複カテゴリの削除
+            if !categoryList.contains(param.category) {
+                categoryList.append(param.category)
+                print(String(categoryList.count) + ":" + categoryList[i])
+                i += 1
+            }
         }
     }
 
@@ -128,6 +132,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     // Deleteボタンが押された時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+print("tableview:削除=")
 
         if editingStyle == .delete {
             // 削除するタスクを取得する
@@ -142,7 +147,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 self.realm.delete(task)
                 tableView.deleteRows(at: [indexPath], with: .fade)
             }
-            
+
+//            taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
+            createCategoryList()
+
+
             // 未通知のローカル通知一覧のログを出力する
             center.getPendingNotificationRequests { (requests: [UNNotificationRequest] ) in
                 for request in requests {
@@ -164,8 +173,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     // セルが削除可能であることを伝えるメソッド
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+print("tableview:削除可能")
         return.delete
     }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let inputViewController = segue.destination as! InputViewController
         
@@ -181,9 +192,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             inputViewController.task = task
         }
     }
-    // 入力画面から戻ってきた時にTableViewを更新させる
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+print("viewWillAppear")
+        //カテゴリリストの作成
+        createCategoryList()
+        // 入力画面から戻ってきた時にTableViewを更新させる
         tableView.reloadData()
     }
 }
