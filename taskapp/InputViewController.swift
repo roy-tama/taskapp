@@ -37,13 +37,19 @@ class InputViewController: UIViewController {
         // キーボードを閉じる
         view.endEditing(true)
     }
+    
     override func viewWillDisappear(_ animated: Bool) {
-        try! realm.write {
-            self.task.title = self.titleTextField.text!
-            self.task.contents = self.contentsTextView.text
-            self.task.date = self.dataPicker.date
-            self.realm.add(self.task, update: .modified)
-            self.task.category = self.categoryTextField.text!    // カテゴリ追加
+
+        if self.titleTextField.text != "" {
+            // 入力された内容を登録
+            try! realm.write {
+                self.task.title = self.titleTextField.text!
+                self.task.contents = self.contentsTextView.text
+                self.task.date = self.dataPicker.date
+                self.realm.add(self.task, update: .modified)
+                self.task.category = self.categoryTextField.text!    // カテゴリ追加
+            }
+        } else {
         }
         setNotification(task: task)
         super.viewWillDisappear(animated)

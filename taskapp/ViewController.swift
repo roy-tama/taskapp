@@ -55,21 +55,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         self.searchTxtField.text = "\(categoryList[pickerView.selectedRow(inComponent: 0)])"
     }
     
-    // カテゴリリストの作成を行う
-    func createCategoryList() {
+    /// カテゴリリストの作成を行う
+    /// - Returns: Array<String>
+    func createCategoryList() -> Array<String> {
         var i: Int = 1
-        if !categoryList.contains("") {
-            categoryList.append("")
-        }
+        var myCategoryList: [String] = []
 
+        myCategoryList.append("")
         for param in taskArray {
             // 重複カテゴリの削除
-            if !categoryList.contains(param.category) {
-                categoryList.append(param.category)
-                print(String(categoryList.count) + ":" + categoryList[i])
+            if !myCategoryList.contains(param.category) {
+                myCategoryList.append(param.category)
+                print(String(myCategoryList.count) + ":" + myCategoryList[i])
                 i += 1
             }
         }
+        return myCategoryList
     }
 
     // -----------------------------------------
@@ -132,7 +133,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     // Deleteボタンが押された時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-print("tableview:削除=")
 
         if editingStyle == .delete {
             // 削除するタスクを取得する
@@ -148,9 +148,8 @@ print("tableview:削除=")
                 tableView.deleteRows(at: [indexPath], with: .fade)
             }
 
-//            taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: true)
-            createCategoryList()
-
+            // カテゴリリストの更新
+            categoryList = createCategoryList()
 
             // 未通知のローカル通知一覧のログを出力する
             center.getPendingNotificationRequests { (requests: [UNNotificationRequest] ) in
@@ -173,7 +172,6 @@ print("tableview:削除=")
     }
     // セルが削除可能であることを伝えるメソッド
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
-print("tableview:削除可能")
         return.delete
     }
     
@@ -196,8 +194,8 @@ print("tableview:削除可能")
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 print("viewWillAppear")
-        //カテゴリリストの作成
-        createCategoryList()
+        //カテゴリリストの更新
+        categoryList = createCategoryList()
         // 入力画面から戻ってきた時にTableViewを更新させる
         tableView.reloadData()
     }
